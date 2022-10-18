@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
 import 'package:cool_alert/cool_alert.dart';
+import 'package:login_test/src/pages/mensajes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -60,7 +61,7 @@ class _LoginPageState extends State<LoginPage> {
 
       Global.login = email;
       Navigator.push(
-          context, MaterialPageRoute(builder: (context) => Principal()));
+          context, MaterialPageRoute(builder: (context) => Mensajes()));
     } else {
       CoolAlert.show(
         context: context,
