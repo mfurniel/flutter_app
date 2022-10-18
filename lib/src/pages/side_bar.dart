@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:login_test/src/pages/agregar.dart';
+import 'package:login_test/src/pages/integrantes.dart';
+import 'package:login_test/src/pages/login_page.dart';
 
 class NavBar extends StatelessWidget {
   const NavBar({super.key});
@@ -34,24 +37,31 @@ class NavBar extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.add),
             title: const Text('Agregar'),
-            onTap: () => print('Fav'),
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => Agregar(),
+              ));
+            },
           ),
           ListTile(
             leading: const Icon(Icons.group),
             title: const Text('Integrantes'),
-            onTap: () => print('request'),
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => Integrantes(),
+              ));
+            },
           ),
           ListTile(
             leading: const Icon(Icons.exit_to_app_outlined),
             title: const Text('Salir'),
-            onTap: () => print('Fav'),
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => LoginPage(),
+              ));
+            },
           ),
           Divider(),
-          ListTile(
-            leading: const Icon(Icons.favorite),
-            title: const Text('Favoritos'),
-            onTap: () => print('Fav'),
-          ),
         ],
       ),
     );

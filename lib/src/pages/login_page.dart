@@ -130,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
       return RaisedButton(
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15),
-          child: Text(
+          child: const Text(
             'Iniciar Sesion',
             style: TextStyle(
               fontSize: 16,
@@ -188,7 +188,7 @@ class Principal extends StatelessWidget {
           title: Text("Principal ${Global.login}"),
         ),
         body: Center(
-          child: Text("ඞඞඞඞඞඞඞ login success"),
+          child: const Text("ඞඞඞඞඞඞඞ login success"),
         ));
   }
 }
