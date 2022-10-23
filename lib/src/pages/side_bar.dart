@@ -2,11 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:login_test/src/pages/agregar.dart';
 import 'package:login_test/src/pages/integrantes.dart';
 import 'package:login_test/src/pages/login_page.dart';
+import 'package:login_test/src/pages/mensajes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class NavBar extends StatelessWidget {
+class NavBar extends StatefulWidget {
   const NavBar({super.key});
 
   @override
+  State<NavBar> createState() => _NavBarState();
+}
+
+class _NavBarState extends State<NavBar> {
+  @override
+  late final pref;
+  String login_guardado = "";
+
+  void cargaPreferencia() async {
+    pref = await SharedPreferences.getInstance();
+    login_guardado = pref.getString("nombre");
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    cargaPreferencia();
+  }
+
   Widget build(BuildContext context) {
     return Drawer(
       child: ListView(
@@ -14,7 +37,7 @@ class NavBar extends StatelessWidget {
         children: [
           UserAccountsDrawerHeader(
             accountName: const Text('Nombre'),
-            accountEmail: const Text('correo'),
+            accountEmail: Text(login_guardado),
             currentAccountPicture: CircleAvatar(
               child: ClipOval(
                 child: Image.network(
@@ -33,6 +56,15 @@ class NavBar extends StatelessWidget {
                 fit: BoxFit.cover,
               ),
             ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.home),
+            title: const Text('Mensajes'),
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => Mensajes(),
+              ));
+            },
           ),
           ListTile(
             leading: const Icon(Icons.add),
@@ -56,9 +88,12 @@ class NavBar extends StatelessWidget {
             leading: const Icon(Icons.exit_to_app_outlined),
             title: const Text('Salir'),
             onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(
-                builder: (context) => LoginPage(),
-              ));
+              Navigator.pushAndRemoveUntil(context,
+                  MaterialPageRoute(builder: (BuildContext context) {
+                return LoginPage();
+              }), (r) {
+                return false;
+              });
             },
           ),
           Divider(),

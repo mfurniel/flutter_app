@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:cool_alert/cool_alert.dart';
 import 'package:login_test/src/pages/mensajes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 class LoginPage extends StatefulWidget {
   // const LoginPage({super.key});
@@ -24,52 +26,84 @@ class _LoginPageState extends State<LoginPage> {
     return SafeArea(
       child: Scaffold(
           body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Flexible(
-              child: Image.asset(
-                'assets/images/logo.png',
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Image.asset(
+                'assets/images/loginLogo.png',
                 height: 300,
               ),
-            ),
-            SizedBox(
-              height: 15.0,
-            ),
-            _userTextField(),
-            SizedBox(
-              height: 15,
-            ),
-            _passwordTextField(),
-            SizedBox(
-              height: 20,
-            ),
-            _buttonLogin(),
-          ],
+              Container(
+                alignment: Alignment.topLeft,
+                margin: const EdgeInsets.symmetric(horizontal: 40.0),
+                child: Text(
+                  'Login',
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+              SizedBox(
+                height: 15.0,
+              ),
+              _userTextField(),
+              SizedBox(
+                height: 15,
+              ),
+              _passwordTextField(),
+              SizedBox(
+                height: 20,
+              ),
+              _buttonLogin(),
+              SizedBox(
+                height: 20,
+              ),
+              Text(
+                'Derechos reservados a MBFF S.A',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.normal,
+                ),
+                textAlign: TextAlign.start,
+              ),
+            ],
+          ),
         ),
       )),
     );
   }
 
-  Future<void> validarDatos(String email, String password) async {
+  Future<void> validarDatos(String email, String password,
+      RoundedLoadingButtonController _buttonController) async {
     final response = await LoginService().validar(email, password);
 
     if (response.statusCode == 200) {
       //almacenar de alguna manera el login
-
+      String name = jsonDecode(response.body);
       await pref.setString('usuario', email);
+      await pref.setString('nombre', name);
 
       Global.login = email;
+      Global.name = name;
       Navigator.push(
           context, MaterialPageRoute(builder: (context) => Mensajes()));
+      _btnController.success();
     } else {
       CoolAlert.show(
         context: context,
         type: CoolAlertType.error,
         title: 'Oops...',
-        text: 'El pepe ete sech',
+        text: 'Algo ha salido mal :c',
         loopAnimation: false,
+        onConfirmBtnTap: () {
+          _btnController.reset();
+          Navigator.pop(context);
+        },
       );
+      _btnController.error();
     }
   }
 
@@ -88,6 +122,26 @@ class _LoginPageState extends State<LoginPage> {
     emailController.text = login_guardado == null ? "" : login_guardado!;
   }
 
+  OutlineInputBorder myinputborder() {
+    //return type is OutlineInputBorder
+    return OutlineInputBorder(
+        //Outline border type for TextFeild
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+        borderSide: BorderSide(
+          color: Colors.redAccent,
+          width: 3,
+        ));
+  }
+
+  // OutlineInputBorder myfocusborder() {
+  //   return OutlineInputBorder(
+  //       borderRadius: BorderRadius.all(Radius.circular(20)),
+  //       borderSide: BorderSide(
+  //         color: Colors.greenAccent,
+  //         width: 3,
+  //       ));
+  // }
+
   Widget _userTextField() {
     return StreamBuilder(
         builder: (BuildContext context, AsyncSnapshot snapshot) {
@@ -97,10 +151,9 @@ class _LoginPageState extends State<LoginPage> {
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
             decoration: InputDecoration(
-              icon: Icon(Icons.email),
-              hintText: 'ejemplo@correo.cl',
-              labelText: 'Correo Electronico',
-            ),
+                prefixIcon: Icon(Icons.email),
+                hintText: 'ejemplo@correo.cl',
+                border: myinputborder()),
             onChanged: (value) {}),
       );
     });
@@ -116,48 +169,44 @@ class _LoginPageState extends State<LoginPage> {
             keyboardType: TextInputType.emailAddress,
             obscureText: true,
             decoration: InputDecoration(
-              icon: Icon(Icons.lock),
-              hintText: 'Contraseña',
-              labelText: 'Contraseña',
-            ),
+                prefixIcon: Icon(Icons.lock),
+                hintText: 'Contraseña',
+                border: myinputborder()),
             onChanged: (value) {}),
       );
     });
   }
 
+  final RoundedLoadingButtonController _btnController =
+      RoundedLoadingButtonController();
+
+  void _doSomething() async {
+    if (emailController.text.length == 0) {
+      Fluttertoast.showToast(
+          msg: "Ingrese un email valido",
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.CENTER,
+          timeInSecForIosWeb: 1,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+      _btnController.error();
+      Timer(Duration(seconds: 3), () {
+        _btnController.reset();
+      });
+    } else {
+      validarDatos(
+          emailController.text, passwordController.text, _btnController);
+    }
+  }
+
   Widget _buttonLogin() {
     return StreamBuilder(
         builder: (BuildContext context, AsyncSnapshot snapshot) {
-      return RaisedButton(
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15),
-          child: const Text(
-            'Iniciar Sesion',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        elevation: 10,
-        color: Colors.amber,
-        onPressed: () {
-          if (emailController.text.length == 0) {
-            Fluttertoast.showToast(
-                msg: "Ingrese un email valido",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.CENTER,
-                timeInSecForIosWeb: 1,
-                backgroundColor: Colors.red,
-                textColor: Colors.white,
-                fontSize: 16.0);
-          } else {
-            validarDatos(emailController.text, passwordController.text);
-          }
-        },
+      return RoundedLoadingButton(
+        child: Text('Iniciar Sesión', style: TextStyle(color: Colors.white)),
+        controller: _btnController,
+        onPressed: _doSomething,
       );
     });
   }
@@ -166,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
 class LoginService {
   Future<http.Response> validar(String login, String pass) async {
     return await http.post(
-      Uri.parse('https://3437baaa465f.sa.ngrok.io/api/Usuarios'),
+      Uri.parse('https://40fd422c6d4d.sa.ngrok.io/api/Usuarios'),
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -177,6 +226,7 @@ class LoginService {
 
 class Global {
   static String login = "";
+  static String name = "";
 }
 
 class Principal extends StatelessWidget {
